@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carga Térmica — Douglas Pires Oliveira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== VARIÁVEIS GLOBAIS ===== */
+:root {
+  --inkBlue: #1a1a2e;
+  --ink2GreyBlue: #64647a;
+  --ink2LightGrey: #b0b0c0;
+  --bg: #f4f5f8;
+  --white: #ffffff;
+  --line: #e2e4ec;
+  --accent: #2557d6;
+  --accent-Blue: #eef2ff;
+  --slate: #475569;
+  --mono: 'Spline Sans Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+  --radius: 10px;
+}
+
+/* ===== RESET E BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--inkBlue);
+  min-height: 100vh;
+  padding-bottom: 120px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== CABEÇALHO ===== */
+.masthead { background: linear-gradient(135deg, #1e3a8a 0%, #2557d6 100%); padding: 40px 48px 36px; }
+.masthead-eyebrow { font-size: .72rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.65); margin-bottom: 10px; }
+.masthead h1 { font-size: 2rem; font-weight: 700; color: #fff; line-height: 1.15; letter-spacing: -.03em; margin-bottom: 6px; }
+.masthead-sub { font-size: .82rem; color: rgba(255,255,255,.5); font-family: var(--mono); letter-spacing: .02em; margin-bottom: 22px; }
+.masthead-author { display: inline-flex; align-items: center; gap: 10px; font-size: .85rem; color: rgba(255,255,255,.7); }
+.masthead-author strong { color: #fff; font-weight: 600; }
+.author-sep { width: 1px; height: 14px; background: rgba(255,255,255,.25); }
+
+/* ===== CONTAINER PRINCIPAL ===== */
+.wrap { max-width: 860px; margin: 0 auto; padding: 36px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ===== CARDS DE CARGA TÉRMICA ===== */
+.card { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.card-head { display: flex; align-items: center; gap: 14px; padding: 13px 22px; border-bottom: 1px solid var(--line); background: var(--accent-Blue); }
+.q-label { font-family: var(--mono); font-size: .68rem; font-weight: 500; color: var(--accent); background: var(--accent-Blue); border: 1px solid rgba(37,99,235,.15); padding: 4px 10px; border-radius: 6px; letter-spacing: .04em; flex-shrink: 0; }
+.card-head h2 { font-size: .9rem; font-weight: 600; color: var(--inkBlue); flex: 1; letter-spacing: -.01em; }
+.card-formula { font-family: var(--mono); font-size: .67rem; color: var(--ink2LightGrey); white-space: nowrap; }
+.card-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+
+/* ===== GRIDS DE FORMULÁRIO ===== */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+/* ===== CAMPOS DE ENTRADA ===== */
+.field { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: .7rem; font-weight: 500; color: var(--ink2GreyBlue); text-transform: uppercase; letter-spacing: .07em; }
+input[type="number"], select {
+  font-family: var(--mono); font-size: .88rem; color: var(--inkBlue);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 7px;
+  padding: 9px 12px; width: 100%;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+  -moz-appearance: textfield; appearance: none; line-height: 1.4;
+}
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus, select:focus {
+  outline: none; border-color: var(--accent);
+  background: var(--white); box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+.hint { font-size: .68rem; color: var(--ink2LightGrey); font-family: var(--mono); }
+
+/* ===== INFO STRIP DO Q1 ===== */
+.info-strip { background: var(--accent-Blue); border: 1px solid rgba(37,99,235,.15); border-radius: 8px; padding: 12px 18px; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.info-strip-item { display: flex; flex-direction: column; gap: 4px; padding: 0 16px; border-right: 1px solid rgba(37,99,235,.12); }
+.info-strip-item:first-child { padding-left: 0; }
+.info-strip-item:last-child { border-right: none; }
+.info-strip-label { font-size: .65rem; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); opacity: .6; font-family: var(--mono); }
+.info-strip-value { font-size: .82rem; font-weight: 500; color: var(--accent); font-family: var(--mono); line-height: 1.3; }
+
+/* ===== RESULTADO PARCIAL ===== */
+.partial { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .75rem; color: var(--ink2GreyBlue); font-family: var(--mono); }
+.partial strong { font-size: .88rem; color: var(--accent); font-weight: 500; }
+
+/* ===== CARD DE RESULTADO FINAL ===== */
+.result-card { background: var(--white); border-radius: var(--radius); overflow: hidden; border: 2px solid var(--accent); }
+.result-head { padding: 13px 22px; border-bottom: 1px solid var(--line); font-size: .7rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .1em; font-family: var(--mono); background: var(--accent-Blue); }
+.result-body { padding: 22px; display: flex; flex-direction: column; gap: 18px; }
+
+/* ===== GRID DE RESUMO DAS PARCELAS ===== */
+.breakdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bd { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 10px; text-align: center; }
+.bd-l { font-size: .58rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink2LightGrey); margin-bottom: 5px; font-family: var(--mono); }
+.bd-v { font-family: var(--mono); font-size: .8rem; color: var(--inkBlue); font-weight: 500; }
+
+/* ===== CAIXAS DE RESULTADO FINAL ===== */
+.finals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.fin { border-radius: 8px; padding: 20px 14px; text-align: center; }
+.fin.hi { background: linear-gradient(135deg, #1e3a8a 0%, #2557d6 100%); }
+.fin.lo { background: var(--bg); border: 1px solid var(--line); }
+.fin-l { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; font-family: var(--mono); }
+.fin.hi .fin-l { color: rgba(255,255,255,.55); }
+.fin.lo .fin-l { color: var(--ink2GreyBlue); }
+.fin-n { font-family: var(--sans); font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
+.fin.hi .fin-n { color: #fff; }
+.fin.lo .fin-n { color: var(--slate); }
+.fin-u { font-size: .65rem; margin-top: 4px; font-family: var(--mono); }
+.fin.hi .fin-u { color: rgba(255,255,255,.35); }
+.fin.lo .fin-u { color: var(--ink2LightGrey); }
+
+/* ===== BOTÃO EXPORTAR PDF ===== */
+#btnPdf {
+  position: fixed; bottom: 28px; right: 28px; z-index: 999;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2557d6 100%);
+  color: #fff; border: none; border-radius: 8px; padding: 13px 24px;
+  font-family: var(--sans); font-size: .88rem; font-weight: 600;
+  cursor: pointer; box-shadow: 0 4px 16px rgba(37,87,214,.35);
+  transition: transform .15s, box-shadow .15s;
+}
+#btnPdf:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,87,214,.45); }
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 600px) {
+  .masthead { padding: 28px 20px 24px; }
+  .masthead h1 { font-size: 1.5rem; }
+  .wrap { padding: 20px 14px; }
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .breakdown-grid { grid-template-columns: 1fr 1fr; }
+  .finals { grid-template-columns: 1fr; }
+  .card-formula { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-eyebrow">Projeto de Final de Curso</div>
+  <h1>Calculadora de Carga Térmica</h1>
+  <div class="masthead-author">
+    <strong>Douglas Pires Oliveira</strong>
+    <span class="author-sep"></span>
+    <span>Calculadora de Carga Térmica para Câmaras Frigoríficas</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- BLOCO Q1: TRANSMISSÃO DE CALOR -->
+  <div class="card">
+    <div class="card-head">
+      <span class="q-label">Q1</span>
+      <h2>Transmissão de Calor — Paredes, Teto e Piso</h2>
+      <span class="card-formula">Q1 = Área × Fator de dispersão (Tab1)</span>
+    </div>
+    <div class="card-body">
+      <div class="g3">
+        <div class="field"><label>Largura interna (m)</label><input type="number" id="larg" value="2" step="0.1" min="1"></div>
+        <div class="field"><label>Comprimento interno (m)</label><input type="number" id="comp" value="3" step="0.1" min="1"></div>
+        <div class="field"><label>Altura interna (m)</label><input type="number" id="alt" value="2" step="0.1" min="1"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Temperatura externa (°C)</label><input type="number" id="tExt" value="35" step="1"></div>
+        <div class="field"><label>Temperatura interna (°C)</label><input type="number" id="tInt" value="-1" step="1"></div>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Material do isolamento</label>
+          <select id="isoMat">
+            <option value="purpainel">Poliuretano — Painel (PUR painel)</option>
+            <option value="purplaca">Poliuretano — Placa (PUR placa)</option>
+            <option value="eps">EPS / Isopor</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Espessura</label>
+          <select id="isoEsp">
+            <option value="50">50 mm</option>
+            <option value="75">75 mm</option>
+            <option value="100" selected>100 mm</option>
+            <option value="150">150 mm</option>
+            <option value="200">200 mm</option>
+          </select>
+        </div>
+      </div>
+      <div class="info-strip">
+        <div class="info-strip-item">
+          <span class="info-strip-label">Δ T</span>
+          <span class="info-strip-value" id="dtVal">—</span>
+        </div>
+        <div class="info-strip-item">
+          <span class="info-strip-label">Fator de disperção (Tabela 1)</span>
+          <span class="info-strip-value" id="dtFator">—</span>
+        </div>
+        <div class="info-strip-item">
+          <span class="info-strip-label">Área Total</span>
+          <span class="info-strip-value" id="dtArea">—</span>
+        </div>
+      </div>
+      <div class="partial">Q1 = <strong id="q1val">—</strong></div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO Q1 -->
+
+  <!-- BLOCO Q2: INFILTRAÇÃO DE CALOR -->
+  <div class="card">
+    <div class="card-head">
+      <span class="q-label">Q2</span>
+      <h2>Infiltração de Calor — Abertura de Portas</h2>
+      <span class="card-formula">Q2 = Volume × Número de Troca de Ar(Tab2) × Fator de Resfriamento de Ar(Tab 3)</span>
+    </div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="field">
+          <label>Intensidade de uso da porta</label>
+          <select id="usoIntensidade">
+            <option value="normal" selected>Normal</option>
+            <option value="intenso">Intenso (×2) — alta movimentação</option>
+          </select>
+          <div class="hint">Uso intenso multiplica o Fator de Troca de Ar (Tabela 2) por 2</div>
+        </div>
+        <div class="field">
+          <label>Umidade relativa externa (%)</label>
+          <select id="urExt">
+            <option value="40">40%</option>
+            <option value="50">50%</option>
+            <option value="60" selected>60%</option>
+          </select>
+        </div>
+      </div>
+      <div class="partial">Q2 = <strong id="q2val">—</strong></div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO Q2 -->
+
+  <!-- BLOCO Q3: CARGA DO PRODUTO -->
+  <div class="card">
+    <div class="card-head">
+      <span class="q-label">Q3</span>
+      <h2>Carga do Produto</h2>
+      <span class="card-formula">Q3 = (massa × calor × ΔT) × (24 / tempo em)</span>
+    </div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="field">
+          <label>Tipo de produto</label>
+          <select id="prodKey">
+            <optgroup label="Carnes / Derivados (Tab. 4A)">
+              <option value="carne-bovina-magra-fresca" selected>Carne bovina magra fresca (Resfriamento)</option>
+              <option value="carne-bovina-magra-cong">Carne bovina magra (Congelamento)</option>
+              <option value="carne-bovina-gorda-fresca">Carne bovina gorda fresca (Resfriamento)</option>
+              <option value="carne-bovina-gorda-cong">Carne bovina gorda (Congelamento) </option>
+              <option value="frango-fresco">Frango / Aves frescas (Resfriamento)</option>
+              <option value="frango-cong">Frango / Aves (Congelamento)</option>
+              <option value="suino-fresco">Suíno fresco (Resfriamento)</option>
+              <option value="suino-cong">Suíno congelado (Congelamento)</option>
+              <option value="lombo">Lombo (Resfriamento)</option>
+              <option value="figado">Fígado (Resfriamento)</option>
+              <option value="presunto">Presunto (Resfriamento)</option>
+            </optgroup>
+            <optgroup label="Peixes (Tab. 4C)">
+              <option value="peixe-gordo-fresco">Peixe gordo fresco (Resfriamento) </option>
+              <option value="peixe-gordo-cong">Peixe gordo congelado (Congelamento) </option>
+              <option value="peixe-magro-fresco">Peixe magro fresco (Resfriamento)</option>
+              <option value="peixe-magro-cong">Peixe magro congelado (Congelamento)</option>
+              <option value="merlusa">Merlusa (Congelamento)</option>
+            </optgroup>
+            <optgroup label="Frutas (Tab. 4B)">
+              <option value="maca-pera">Maçã / Pêra (Resfriamento)</option>
+              <option value="laranja">Laranja (Resfriamento)</option>
+              <option value="banana">Banana (Resfriamento)</option>
+              <option value="morango">Morango fresco (Resfriamento)</option>
+              <option value="manga">Manga (Resfriamento)</option>
+              <option value="uva">Uva (Resfriamento)</option>
+            </optgroup>
+            <optgroup label="Verduras / Legumes (Tab. 4E)">
+              <option value="alface">Alface americana (Resfriamento)</option>
+              <option value="tomate">Tomate maduro (Resfriamento)</option>
+              <option value="batata">Batata (Resfriamento)</option>
+              <option value="cenoura">Cenoura fresca (Resfriamento)</option>
+              <option value="brocolis">Brócolis (Resfriamento)</option>
+              <option value="repolho">Repolho (Resfriamento)</option>
+              <option value="cebola">Cebola (Resfriamento)</option>
+              <option value="pimentao">Pimentão (Resfriamento)</option>
+            </optgroup>
+            <optgroup label="Variedades (Tab. 4D)">
+              <option value="laticinios">Laticínios geral (Resfriamento)</option>
+              <option value="sorvete">Sorvete (Congelamento)</option>
+              <option value="leite">Leite / Bebidas (Resfriamento)</option>
+              <option value="cerveja">Cerveja (Resfriamento)</option>
+              <option value="manteiga">Manteiga (Resfriamento)</option>
+              <option value="queijo">Queijo (Resfriamento)</option>
+              <option value="ovos">Ovos frescos (Resfriamento)</option>
+            </optgroup>
+          </select>
+<div class="hint"> Valores das tabelas 4 (Produtos)</div>
+        </div>
+        <div class="field"><label>Temperatura de entrada (°C)</label><input type="number" id="tEntrada" value="10" step="1"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Movimentação diária (Kg/24h)</label><input type="number" id="massa" value="6000" step="100" min="1"></div>
+        <div class="field">
+          <label>Tempo de processo (h)</label>
+          <input type="number" id="tempoProc" value="24" step="1" min="1" max="24">
+          <div class="hint">Tempo para resfriar/congelar o produto — não pode exceder as horas de funcionamento</div>
+        </div>
+      </div>
+      <div class="partial">Q3 = <strong id="q3val">—</strong></div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO Q3 -->
+
+  <!-- BLOCO Q4: OCUPAÇÃO -->
+  <div class="card">
+    <div class="card-head">
+      <span class="q-label">Q4</span>
+      <h2>Ocupação — Pessoas</h2>
+      <span class="card-formula">Q4 = Número de pessoas × Fator de Ocupação (Tabela 5) × h (tempo de permanência)</span>
+    </div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="field"><label>Número de pessoas</label><input type="number" id="nPessoas" value="1" step="1" min="1"></div>
+        <div class="field"><label>Permanência diária (h)</label><input type="number" id="hPessoas" value="3" step="0.5" min="1" max="24"></div>
+      </div>
+      <div class="partial">Q4 = <strong id="q4val">—</strong></div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO Q4 -->
+
+  <!-- BLOCO Q5: ILUMINAÇÃO -->
+  <div class="card">
+    <div class="card-head">
+      <span class="q-label">Q5</span>
+      <h2>Iluminação</h2>
+      <span class="card-formula">Q5 = Área do piso × 10 × horas de operação × 0,86 (fator de conversão)</span>
+    </div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="field">
+          <label>Área do piso (m²)</label>
+          <input type="number" id="areaPiso" readonly style="background:var(--accent-Blue);border-color:rgba(37,99,235,.2);cursor:default;">
+          <div class="hint">Calculado automaticamente: Larg × Comp</div>
+        </div>
+        <div class="field">
+          <label>Horas de iluminação por dia</label>
+          <input type="number" id="hLuz" value="3" step="0.5" min="1" max="24">
+        </div>
+      </div>
+      <div class="partial">Q5 = <strong id="q5val">—</strong></div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO Q5 -->
+
+  <!-- BLOCO Q6: MOTORES -->
+  <div class="card">
+    <div class="card-head">
+      <span class="q-label">Q6</span>
+      <h2>Motores — Evaporador e outros</h2>
+      <span class="card-formula">Q6 = Potência do motor em CV × 632,41 × h (Horas de uso diário) </span>
+    </div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="field"><label>Potência dos motores (CV)</label><input type="number" id="potMotor" value="0.25" step="0.05" min="0.01"></div>
+        <div class="field"><label>Horas de uso por dia</label><input type="number" id="hMotor" value="16" step="1" min="1" max="24"></div>
+      </div>
+      <div class="partial">Q6 = <strong id="q6val">—</strong></div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO Q6 -->
+
+  <!-- BLOCO PARÂMETROS FINAIS -->
+  <div class="card">
+    <div class="card-head">
+      <span class="q-label">FS</span>
+      <h2>Parâmetros Finais</h2>
+    </div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="field">
+          <label>Fator de segurança (%)</label>
+          <input type="number" id="fs" value="10" step="5" min="1" max="50">
+          <div class="hint">Normalmente 10%</div>
+        </div>
+        <div class="field">
+          <label>Horas de funcionamento/dia</label>
+          <input type="number" id="hFunc" value="20" step="1" min="1" max="24">
+          <div class="hint">Contando paradas para degelo — deve ser ≥ Tempo de processo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO PARÂMETROS FINAIS -->
+
+  <!-- BLOCO RESULTADO FINAL -->
+  <div class="result-card">
+    <div class="result-head">Resultado — Carga Térmica Total</div>
+    <div class="result-body">
+      <div class="breakdown-grid">
+        <div class="bd"><div class="bd-l">Q1 Transmissão</div><div class="bd-v" id="rb1">—</div></div>
+        <div class="bd"><div class="bd-l">Q2 Infiltração</div><div class="bd-v" id="rb2">—</div></div>
+        <div class="bd"><div class="bd-l">Q3 Produto</div><div class="bd-v" id="rb3">—</div></div>
+        <div class="bd"><div class="bd-l">Q4 Pessoas</div><div class="bd-v" id="rb4">—</div></div>
+        <div class="bd"><div class="bd-l">Q5 Iluminação</div><div class="bd-v" id="rb5">—</div></div>
+        <div class="bd"><div class="bd-l">Q6 Motores</div><div class="bd-v" id="rb6">—</div></div>
+        <div class="bd"><div class="bd-l">Subtotal</div><div class="bd-v" id="rbSub">—</div></div>
+        <div class="bd"><div class="bd-l">+ Segurança</div><div class="bd-v" id="rbSeg">—</div></div>
+      </div>
+      <div class="finals">
+        <div class="fin hi"><div class="fin-l">Carga Total (24h)</div><div class="fin-n" id="rKcal24">—</div><div class="fin-u">Kcal / 24h</div></div>
+        <div class="fin hi"><div class="fin-l">Capacidade Requerida</div><div class="fin-n" id="rKcalH">—</div><div class="fin-u">Kcal / h</div></div>
+        <div class="fin lo"><div class="fin-l">Equivalente</div><div class="fin-n" id="rKW">—</div><div class="fin-u">kW</div></div>
+      </div>
+    </div>
+  </div>
+  <!-- FIM DO BLOCO RESULTADO FINAL -->
+
+</div>
+
+<button id="btnPdf" onclick="exportPDF()">Exportar PDF</button>
+
+<script>
+// ===== TABELAS DE DADOS =====
+const TAB1 = {
+   1: [14, 9.5, 7.2, 4.8, 3.6, 9.5, 6.4, 4.8, 8.3, 5.5, 4.2],
+  10: [143, 95, 72, 48, 36, 95, 64, 48, 83, 55, 42],
+  15: [215, 143, 107, 72, 54, 143, 95, 72, 125, 83, 62],
+  20: [286, 191, 143, 95, 72, 191, 127, 95, 166, 111, 83],
+  23: [329, 220, 165, 110, 82, 220, 146, 110, 191, 128, 96],
+  25: [358, 239, 179, 119, 89, 239, 159, 119, 208, 139, 104],
+  28: [401, 267, 200, 134, 100, 267, 178, 134, 233, 155, 116],
+  30: [429, 286, 215, 143, 107, 286, 191, 143, 250, 166, 125],
+  33: [472, 315, 236, 157, 118, 315, 210, 157, 275, 183, 137],
+  35: [501, 334, 251, 167, 125, 334, 223, 167, 291, 194, 145],
+  36: [515, 343, 258, 172, 129, 343, 229, 172, 300, 200, 150],
+  38: [543, 362, 272, 181, 136, 363, 242, 181, 316, 211, 158],
+  40: [573, 382, 286, 191, 143, 382, 255, 191, 333, 222, 166],
+  43: [616, 410, 308, 205, 154, 410, 274, 205, 358, 238, 179],
+  45: [644, 429, 322, 215, 161, 429, 286, 215, 374, 250, 187],
+  48: [687, 458, 344, 229, 172, 458, 305, 229, 399, 266, 200],
+  50: [716, 477, 358, 239, 179, 477, 318, 239, 416, 277, 208],
+  53: [759, 506, 379, 253, 190, 506, 337, 253, 441, 294, 220],
+  55: [787, 525, 394, 262, 197, 525, 350, 262, 458, 305, 229],
+  58: [830, 554, 415, 277, 208, 554, 369, 277, 483, 322, 241],
+  60: [859, 573, 429, 286, 215, 573, 382, 286, 499, 333, 250],
+  63: [901, 601, 451, 300, 225, 601, 401, 300, 524, 349, 262],
+  65: [931, 620, 465, 310, 233, 620, 414, 310, 541, 361, 270],
+  68: [974, 650, 487, 325, 243, 650, 433, 325, 566, 377, 283],
+  70: [1000, 668, 500, 335, 250, 668, 445, 335, 582, 388, 290],
+};
+
+const MAT_IDX = {
+  'eps-50': 0, 'eps-75': 1, 'eps-100': 2, 'eps-150': 3, 'eps-200': 4,
+  'purplaca-50': 5, 'purplaca-75': 6, 'purplaca-100': 7,
+  'purpainel-50': 8, 'purpainel-75': 9, 'purpainel-100': 10,
+};
+
+const TAB2A = [[5,47],[7,39],[10,32],[15,26],[20,22],[25,19],[30,17],[40,15],[50,13],[60,12],[80,10],[100,9],[125,8],[150,7]];
+const TAB2B = [[5,36],[7,30],[10,24],[15,20],[20,17],[25,15],[30,13],[40,11],[50,10],[60,9],[80,8],[100,7],[125,6],[150,5.5]];
+
+const TAB3 = {
+   10: { 15:[0.2,1,1.8], 20:[2.9,4,5.1], 25:[6,7.4,8.9], 30:[9.5,11.5,13.6], 35:[13.6,16.5,19.2], 40:[18.7,22.3,26] },
+    5: { 15:[2.7,3.5,4.3], 20:[5.5,6.6,7.8], 25:[8.7,10,11.7], 30:[12.3,14.4,16.5], 35:[16.5,19.4,22.2], 40:[21.7,25.4,29.2] },
+    0: { 15:[5.4,6.2,7], 20:[8.1,9.3,10.5], 25:[11,13,14.5], 30:[15.1,17.2,19.4], 35:[19.4,22.4,25.6], 40:[24.7,28.4,32.3] },
+   '-5':{ 15:[8,8.8,9.7], 20:[10.8,12,13.2], 25:[14.1,16,17.3], 30:[18,20.1,22.3], 35:[22.3,25.3,28.2], 40:[27.7,31.5,35.5] },
+  '-10':{ 15:[10.2,11.1,12], 20:[13.1,14.3,15.5], 25:[16.5,18,19.7], 30:[20.4,22.5,24.8], 35:[24.8,27.9,30.8], 40:[30.3,34.2,38.2] },
+  '-15':{ 15:[12.7,13.5,14.4], 20:[15.6,16.8,18.1], 25:[19,21,22.3], 30:[23,25.2,27.5], 35:[27.5,30.7,33.2], 40:[33.2,37.1,41.2] },
+  '-20':{ 15:[14.8,15.7,16.6], 20:[17.9,19.1,20.4], 25:[21.3,23,24.7], 30:[25.4,27.6,30], 35:[30,33.2,36.3], 40:[35.7,39.8,43.9] },
+  '-25':{ 15:[17,17.9,18.8], 20:[20.1,21.3,22.6], 25:[23.6,25,27], 30:[27.7,30,32.4], 35:[32.4,35.7,38.8], 40:[38.3,42.4,46.7] },
+  '-30':{ 15:[19.2,20.2,21.1], 20:[22.4,23.7,25], 25:[26,28,29.5], 30:[30.2,32.5,35], 35:[35,38.4,41.6], 40:[41,45.2,49.5] },
+  '-35':{ 15:[21.6,22.3,23.5], 20:[24.6,26.1,27.4], 25:[28.5,30,32], 30:[35.1,37.6,37.7], 35:[37.4,41.1,44.3], 40:[43.7,48.4,52.5] },
+  '-40':{ 15:[23.8,24.8,25.8], 20:[27.1,28.5,29.8], 25:[30.9,33,34.5], 30:[35.3,37.7,40.3], 35:[40.3,43.8,47.1], 40:[46.5,50.9,55.4] },
+};
+
+const TAB5 = [[10,181],[5,208],[0,233],[-5,258],[-10,279],[-15,313],[-20,338],[-25,358]];
+
+const PRODUTOS = {
+  'carne-bovina-magra-fresca': { label: 'Carne bovina magra fresca', cA: 0.77, L: 0, cD: 0, pc: null, tCons: -1 },
+  'carne-bovina-magra-cong':   { label: 'Carne bovina magra cong.', cA: 0.77, L: 56, cD: 0.40, pc: -1.7, tCons: null },
+  'carne-bovina-gorda-fresca': { label: 'Carne bovina gorda fresca', cA: 0.60, L: 0, cD: 0, pc: null, tCons: -1 },
+  'carne-bovina-gorda-cong':   { label: 'Carne bovina gorda cong.', cA: 0.60, L: 44, cD: 0.35, pc: -2.2, tCons: null },
+  'frango-fresco':             { label: 'Frango / Aves frescas', cA: 0.79, L: 0, cD: 0, pc: null, tCons: -1 },
+  'frango-cong':               { label: 'Frango / Aves congeladas', cA: 0.79, L: 59, cD: 0.37, pc: -2.8, tCons: null },
+  'suino-fresco':              { label: 'Suíno fresco', cA: 0.68, L: 0, cD: 0, pc: null, tCons: -1 },
+  'suino-cong':                { label: 'Suíno congelado', cA: 0.68, L: 48, cD: 0.38, pc: -2.2, tCons: null },
+  'lombo':                     { label: 'Lombo', cA: 0.68, L: 48, cD: 0.38, pc: -2.8, tCons: null },
+  'figado':                    { label: 'Fígado', cA: 0.72, L: 52, cD: 0.40, pc: -1.7, tCons: null },
+  'presunto':                  { label: 'Presunto', cA: 0.68, L: 0, cD: 0, pc: null, tCons: 0 },
+  'peixe-gordo-fresco':        { label: 'Peixe gordo fresco', cA: 0.70, L: 0, cD: 0, pc: null, tCons: -1 },
+  'peixe-gordo-cong':          { label: 'Peixe gordo congelado', cA: 0.70, L: 50, cD: 0.38, pc: -2.2, tCons: null },
+  'peixe-magro-fresco':        { label: 'Peixe magro fresco', cA: 0.86, L: 0, cD: 0, pc: null, tCons: -1 },
+  'peixe-magro-cong':          { label: 'Peixe magro congelado', cA: 0.86, L: 68, cD: 0.45, pc: -1.7, tCons: null },
+  'merlusa':                   { label: 'Merlusa', cA: 0.90, L: 66, cD: 0.49, pc: -2.2, tCons: null },
+  'maca-pera':		       { label: 'Maçã / Pêra', cA: 0.86, L: 0, cD: 0, pc: null, tCons: -1 },
+  'laranja':   		       { label: 'Laranja', cA: 0.90, L: 0, cD: 0, pc: null, tCons: -1 },
+  'banana':   	               { label: 'Banana', cA: 0.80, L: 0, cD: 0, pc: null, tCons: -1 },
+  'morango':                   { label: 'Morango fresco', cA: 0.92, L: 0, cD: 0, pc: null, tCons: -1 },
+  'manga':                     { label: 'Manga', cA: 0.90, L: 0, cD: 0, pc: null, tCons: -1 },
+  'uva':                       { label: 'Uva', cA: 0.86, L: 0, cD: 0, pc: null, tCons: -1 },
+  'alface':                    { label: 'Alface americana', cA: 0.96, L: 0, cD: 0, pc: null, tCons: -1 },
+  'tomate':                    { label: 'Tomate maduro', cA: 0.95, L: 0, cD: 0, pc: null, tCons: -1 },
+  'batata':                    { label: 'Batata', cA: 0.82, L: 0, cD: 0, pc: null, tCons: -1 },
+  'cenoura':                   { label: 'Cenoura fresca', cA: 0.90, L: 0, cD: 0, pc: null, tCons: -1 },
+  'brocolis':                  { label: 'Brócolis', cA: 0.92, L: 0, cD: 0, pc: null, tCons: -1 },
+  'repolho':                   { label: 'Repolho', cA: 0.94, L: 0, cD: 0, pc: null, tCons: -1 },
+  'cebola':                    { label: 'Cebola', cA: 0.90, L: 0, cD: 0, pc: null, tCons: -1 },
+  'pimentao':                  { label: 'Pimentão', cA: 0.94, L: 0, cD: 0, pc: null, tCons: -1 },
+  'laticinios':                { label: 'Laticínios geral', cA: 0.85, L: 0, cD: 0, pc: null, tCons: -1 },
+  'sorvete':                   { label: 'Sorvete', cA: 0.78, L: 53, cD: 0.45, pc: -2.8, tCons: null },
+  'leite':                     { label: 'Leite / Bebidas', cA: 0.93, L: 0, cD: 0, pc: null, tCons: 2 },
+  'cerveja':                   { label: 'Cerveja', cA: 0.92, L: 0, cD: 0, pc: null, tCons: 5 },
+  'manteiga':                  { label: 'Manteiga', cA: 0.64, L: 0, cD: 0, pc: null, tCons: 2 },
+  'queijo':                    { label: 'Queijo', cA: 0.85, L: 0, cD: 0, pc: null, tCons: 4 },
+  'ovos':                      { label: 'Ovos frescos', cA: 0.76, L: 0, cD: 0, pc: null, tCons: 0 },
+};
+
+// ===== FUNÇÕES AUXILIARES =====
+function g(id) {
+  var el = document.getElementById(id);
+  var val = parseFloat(el.value);
+  if (isNaN(val)) return 0;
+  return val;
+}
+
+function gs(id) {
+  return document.getElementById(id).value;
+}
+
+function enforceMinMax(id, minVal, maxVal, defaultValue) {
+  var el = document.getElementById(id);
+  if (el) {
+    var val = parseFloat(el.value);
+    if (isNaN(val)) {
+      el.value = defaultValue;
+    } else if (val < minVal) {
+      el.value = minVal;
+    } else if (val > maxVal) {
+      el.value = maxVal;
+    }
+  }
+}
+
+var R = {};
+
+function getFatorTab1(mat, esp, dt) {
+  var chave = mat + '-' + esp;
+  var col = MAT_IDX[chave];
+  if (col === undefined) return 150;
+  var dts = Object.keys(TAB1).map(Number);
+  dts.sort(function(a, b) { return a - b; });
+  if (dt <= dts[0]) return TAB1[dts[0]][col];
+  if (dt >= dts[dts.length - 1]) return TAB1[dts[dts.length - 1]][col];
+
+  var resultado = 150;
+  for (var i = 0; i < dts.length - 1; i++) {
+    if (dt >= dts[i] && dt <= dts[i + 1]) {
+      var dtInf = dts[i];
+      var dtSup = dts[i + 1];
+      var fInf = TAB1[dtInf][col];
+      var fSup = TAB1[dtSup][col];
+      var frac = (dt - dtInf) / (dtSup - dtInf);
+      resultado = fInf + frac * (fSup - fInf);
+      break;
+    }
+  }
+  return resultado;
+}
+
+function getFatorTab2(vol, tint, intenso) {
+  var tab;
+  if (tint < 0) {
+    tab = TAB2B;
+  } else {
+    tab = TAB2A;
+  }
+
+  var val;
+  if (vol <= tab[0][0]) {
+    val = tab[0][1];
+  } else if (vol >= tab[tab.length - 1][0]) {
+    val = tab[tab.length - 1][1];
+  } else {
+    for (var i = 0; i < tab.length - 1; i++) {
+      if (vol >= tab[i][0] && vol <= tab[i + 1][0]) {
+        var volInf = tab[i][0];
+        var volSup = tab[i + 1][0];
+        var fInf = tab[i][1];
+        var fSup = tab[i + 1][1];
+        val = fInf + ((vol - volInf) / (volSup - volInf)) * (fSup - fInf);
+        break;
+      }
+    }
+  }
+
+  var fatorFinal = Math.round(val);
+  if (intenso) {
+    fatorFinal = fatorFinal * 2;
+  }
+  return fatorFinal;
+}
+
+function getFatorTab3(tint, text, ur) {
+  var tintKeys = [10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40];
+
+  var bestTint = tintKeys[0];
+  var menorDiff = Math.abs(tintKeys[0] - tint);
+  for (var i = 1; i < tintKeys.length; i++) {
+    var diff = Math.abs(tintKeys[i] - tint);
+    if (diff < menorDiff) {
+      menorDiff = diff;
+      bestTint = tintKeys[i];
+    }
+  }
+
+  var row = TAB3[bestTint.toString()];
+  var textKeys = [15, 20, 25, 30, 35, 40];
+
+  var t1 = 15;
+  var t2 = 40;
+  for (var j = 0; j < textKeys.length; j++) {
+    if (textKeys[j] <= text) t1 = textKeys[j];
+    if (textKeys[j] >= text && t2 === 40) t2 = textKeys[j];
+  }
+
+  var urIdx = 2;
+  if (ur === 40) urIdx = 0;
+  else if (ur === 50) urIdx = 1;
+
+  var listaV1 = row[t1] || [20, 24, 28];
+  var listaV2 = row[t2] || [20, 24, 28];
+  var v1 = listaV1[urIdx];
+  var v2 = listaV2[urIdx];
+
+  if (t1 === t2) return v1;
+  return v1 + ((text - t1) / (t2 - t1)) * (v2 - v1);
+}
+
+function getFatorTab5(tint) {
+  var maisProximo = TAB5[0];
+  for (var i = 1; i < TAB5.length; i++) {
+    var diffAtual = Math.abs(TAB5[i][0] - tint);
+    var diffMelhor = Math.abs(maisProximo[0] - tint);
+    if (diffAtual < diffMelhor) {
+      maisProximo = TAB5[i];
+    }
+  }
+  return maisProximo[1];
+}
+
+function updateTemperaturaInternaPorProduto() {
+  var pk = gs('prodKey');
+  var prod = PRODUTOS[pk];
+  if (!prod) prod = PRODUTOS['carne-bovina-magra-fresca'];
+
+  var tIntField = document.getElementById('tInt');
+  if (prod.L === 0 && prod.tCons !== null) {
+    var tConsValue = prod.tCons;
+    var valorAtual = parseFloat(tIntField.value);
+    if (valorAtual !== tConsValue) {
+      tIntField.value = tConsValue;
+      tIntField.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+}
+
+function validarTempoProcesso() {
+  enforceMinMax('tempoProc', 1, 24, 24);
+}
+
+// ===== FUNÇÃO PRINCIPAL DE CÁLCULO =====
+function calc() {
+  // Validar todos os campos com limites apropriados
+  enforceMinMax('larg', 1, 999, 2);
+  enforceMinMax('comp', 1, 999, 3);
+  enforceMinMax('alt', 1, 999, 2);
+  enforceMinMax('massa', 1, 999999, 6000);
+  enforceMinMax('tempoProc', 1, 24, 24);
+  enforceMinMax('nPessoas', 1, 999, 1);
+  enforceMinMax('hPessoas', 1, 24, 3);
+  enforceMinMax('hLuz', 1, 24, 3);
+  enforceMinMax('hMotor', 1, 24, 16);
+  enforceMinMax('fs', 1, 50, 10);
+  enforceMinMax('hFunc', 1, 24, 20);
+  enforceMinMax('potMotor', 0.01, 999, 0.25);
+  
+  validarTempoProcesso();
+  
+  // VALIDAÇÃO CRÍTICA: Tempo de processo não pode ser maior que Horas de funcionamento
+  var tempoProc = g('tempoProc');
+  var hFunc = g('hFunc');
+  
+  if (tempoProc > hFunc) {
+    // Ajusta tempoProc para igualar hFunc
+    document.getElementById('tempoProc').value = hFunc;
+    tempoProc = hFunc;
+  }
+
+  var larg = g('larg');
+  var comp = g('comp');
+  var alt = g('alt');
+  var tExt = g('tExt');
+  var tInt = g('tInt');
+  var mat = gs('isoMat');
+  var esp = parseInt(gs('isoEsp'));
+
+  var dt = Math.abs(tExt - tInt);
+  var fator1 = getFatorTab1(mat, esp, dt);
+  var area = (larg * comp + larg * alt + comp * alt) * 2;
+  var q1 = area * fator1;
+
+  document.getElementById('dtVal').textContent = dt.toFixed(1) + '°C';
+  document.getElementById('dtFator').textContent = fator1.toFixed(1) + ' Kcal/m²·24h';
+  document.getElementById('dtArea').textContent = area.toFixed(2) + ' m²';
+
+  var areaPiso = larg * comp;
+  document.getElementById('areaPiso').value = areaPiso.toFixed(2);
+
+  var vol = larg * comp * alt;
+  var usoPorta = gs('usoIntensidade');
+  var intenso = usoPorta === 'intenso';
+  var fator2 = getFatorTab2(vol, tInt, intenso);
+  var urExterna = parseInt(gs('urExt'));
+  var fator3 = getFatorTab3(tInt, tExt, urExterna);
+  var q2 = vol * fator2 * fator3;
+
+  var pk = gs('prodKey');
+  var prod = PRODUTOS[pk];
+  if (!prod) prod = PRODUTOS['carne-bovina-magra-fresca'];
+
+  var cA = prod.cA;
+  var L = prod.L;
+  var cD = prod.cD;
+  var pc = prod.pc;
+  var tCons = prod.tCons;
+
+  var massa = g('massa');
+  var tEntrada = g('tEntrada');
+  if (!tempoProc || tempoProc === 0) tempoProc = 24;
+
+  var tFinal;
+  if (tCons !== null) {
+    tFinal = tCons;
+  } else {
+    tFinal = tInt;
+  }
+
+  var q3Raw;
+  if (L === 0) {
+    var deltaTProduto = tEntrada - tFinal;
+    if (deltaTProduto < 0) deltaTProduto = 0;
+    q3Raw = massa * cA * deltaTProduto;
+  } else {
+    var pontoCongelamento = pc || 0;
+    var deltaSens1 = tEntrada - pontoCongelamento;
+    if (deltaSens1 < 0) deltaSens1 = 0;
+    var q3a = massa * cA * deltaSens1;
+    var q3b = massa * L;
+    var deltaSens2 = pontoCongelamento - tFinal;
+    if (deltaSens2 < 0) deltaSens2 = 0;
+    var q3c = massa * cD * deltaSens2;
+    q3Raw = q3a + q3b + q3c;
+  }
+  var q3 = q3Raw * (24 / tempoProc);
+
+  var fatorTab5 = getFatorTab5(tInt);
+  var nPessoas = g('nPessoas');
+  var hPessoas = g('hPessoas');
+  var q4 = nPessoas * fatorTab5 * hPessoas;
+
+  var hLuz = g('hLuz');
+  var q5 = areaPiso * 10 * hLuz * 0.86;
+
+  var potMotor = g('potMotor');
+  var hMotor = g('hMotor');
+  var q6 = potMotor * 632.41 * hMotor;
+
+  var sub = q1 + q2 + q3 + q4 + q5 + q6;
+  
+  if (sub < 0) sub = 0;
+  
+  var fsPct = g('fs');
+  var fs = fsPct / 100;
+  var qtTotal = sub * (1 + fs);
+  
+  // Usar tempoProc (que já foi validado para não exceder hFunc) como divisor
+  var divisor = tempoProc;
+  if (divisor <= 0) divisor = 1;
+  var qtH = qtTotal / divisor;
+  
+  var qtKW = qtH / 860;
+
+  function fmt(v) {
+    if (!Number.isFinite(v) || v < 0) return '0';
+    return Math.round(v).toLocaleString('pt-BR');
+  }
+  function fmt2(v) {
+    if (!Number.isFinite(v) || v < 0) return '0.00';
+    return v.toFixed(2);
+  }
+
+  var idsCards = ['q1val', 'q2val', 'q3val', 'q4val', 'q5val', 'q6val'];
+  var idsResumo = ['rb1', 'rb2', 'rb3', 'rb4', 'rb5', 'rb6'];
+  var valores = [q1, q2, q3, q4, q5, q6];
+
+  for (var k = 0; k < idsCards.length; k++) {
+    document.getElementById(idsCards[k]).textContent = fmt(valores[k]) + ' Kcal/24h';
+  }
+  for (var k = 0; k < idsResumo.length; k++) {
+    document.getElementById(idsResumo[k]).textContent = fmt(valores[k]);
+  }
+
+  document.getElementById('rbSub').textContent = fmt(sub);
+  document.getElementById('rbSeg').textContent = '+' + fmt(sub * fs);
+  document.getElementById('rKcal24').textContent = fmt(qtTotal);
+  document.getElementById('rKcalH').textContent = fmt(qtH);
+  document.getElementById('rKW').textContent = fmt2(qtKW);
+
+  R = {
+    q1: q1, q2: q2, q3: q3, q4: q4, q5: q5, q6: q6,
+    sub: sub, qtTotal: qtTotal, qtH: qtH, qtKW: qtKW,
+    larg: larg, comp: comp, alt: alt, vol: vol,
+    tExt: tExt, tInt: tInt, dt: dt, areaPiso: areaPiso,
+    f1: fator1.toFixed(1), esp: esp, mat: mat,
+    massa: massa, tEntrada: tEntrada,
+    fs: fsPct, hFunc: hFunc, tempoProc: tempoProc,
+    produto: prod.label,
+    tab2: fator2.toFixed(2), tab3: fator3.toFixed(2),
+    fTab5: Math.round(fatorTab5), hLuz: hLuz
+  };
+}
+
+// ===== EVENTOS =====
+var todosInputs = document.querySelectorAll('input, select');
+for (var i = 0; i < todosInputs.length; i++) {
+  todosInputs[i].addEventListener('input', calc);
+  todosInputs[i].addEventListener('change', calc);
+}
+
+const prodSelect = document.getElementById('prodKey');
+prodSelect.addEventListener('change', function() {
+  updateTemperaturaInternaPorProduto();
+  calc();
+});
+
+const tempoProcInput = document.getElementById('tempoProc');
+tempoProcInput.addEventListener('change', function() {
+  validarTempoProcesso();
+  calc();
+});
+tempoProcInput.addEventListener('input', function() {
+  validarTempoProcesso();
+  calc();
+});
+
+const hFuncInput = document.getElementById('hFunc');
+hFuncInput.addEventListener('change', function() {
+  calc(); // A validação dentro de calc ajustará tempoProc se necessário
+});
+hFuncInput.addEventListener('input', function() {
+  calc();
+});
+
+updateTemperaturaInternaPorProduto();
+calc();
+
+// ===== FUNÇÃO PARA EXPORTAR PDF =====
+function exportPDF() {
+  var r = R;
+  var agora = new Date();
+  var now = agora.toLocaleString('pt-BR');
+
+  function fmt(v) {
+    if (!Number.isFinite(v)) return '0';
+    return Math.round(v).toLocaleString('pt-BR');
+  }
+  function fmt2(v) {
+    if (!Number.isFinite(v)) return '0.00';
+    return v.toFixed(2);
+  }
+
+  var pieData = [
+    { label: 'Produto (Q3)', value: r.q3, color: '#2557d6' },
+    { label: 'Transmissão (Q1)', value: r.q1, color: '#1e3a8a' },
+    { label: 'Infiltração (Q2)', value: r.q2, color: '#60a5fa' },
+    { label: 'Cargas (Q4+Q5+Q6)', value: r.q4 + r.q5 + r.q6, color: '#bfdbfe' },
+  ];
+  var cv = document.createElement('canvas');
+  cv.width = 300;
+  cv.height = 300;
+  var ctx = cv.getContext('2d');
+  var cx = 150, cy = 150, rad = 130;
+  var tot = 0;
+  for (var pi = 0; pi < pieData.length; pi++) {
+    tot += pieData[pi].value;
+  }
+  if (tot === 0) tot = 1;
+  var ang = -Math.PI / 2;
+
+  for (var pd = 0; pd < pieData.length; pd++) {
+    var fatia = pieData[pd];
+    var sl = (fatia.value / tot) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, rad, ang, ang + sl);
+    ctx.closePath();
+    ctx.fillStyle = fatia.color;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    if (fatia.value / tot > 0.04) {
+      var ma = ang + sl / 2;
+      var labelX = cx + Math.cos(ma) * rad * 0.65;
+      var labelY = cy + Math.sin(ma) * rad * 0.65;
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(((fatia.value / tot) * 100).toFixed(1) + '%', labelX, labelY);
+    }
+    ang += sl;
+  }
+  var pie = cv.toDataURL('image/png');
+
+  var legendHtml = '';
+  for (var li = 0; li < pieData.length; li++) {
+    var item = pieData[li];
+    legendHtml += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">';
+    legendHtml += '<div style="width:10px;height:10px;border-radius:2px;background:' + item.color + ';flex-shrink:0"></div>';
+    legendHtml += '<span style="font-size:9px;color:#475569;flex:1;font-family:Outfit,sans-serif">' + item.label + '</span>';
+    legendHtml += '<b style="font-size:9px;color:#1a1a2e;font-family:monospace;font-weight:600">' + fmt(item.value) + '</b>';
+    legendHtml += '</div>';
+  }
+  var legend = legendHtml;
+
+  var matLabel = { purpainel: 'Poliuretano Painel (PUR)', purplaca: 'Poliuretano Placa (PUR)', eps: 'EPS / Isopor' };
+  var nomeIsolamento = matLabel[r.mat] || r.mat;
+  var infoRows = [
+    ['Dimensões', r.larg + '×' + r.comp + '×' + r.alt + 'm'],
+    ['Volume', r.vol.toFixed(1) + 'm³'],
+    ['Área piso', r.areaPiso.toFixed(2) + 'm²'],
+    ['Temperaturas', r.tExt + '°C / ' + r.tInt + '°C (ΔT=' + r.dt.toFixed(1) + '°C)'],
+    ['Isolamento', nomeIsolamento + ' ' + r.esp + 'mm'],
+    ['Fator Tab.1', r.f1 + ' Kcal/m²·24h'],
+    ['Produto', r.produto],
+    ['Movimentação', fmt(r.massa) + ' Kg/24h'],
+    ['Temp. entrada', r.tEntrada + '°C'],
+    ['Tempo processo', r.tempoProc + 'h'],
+    ['Fator Tab.2', r.tab2],
+    ['Fator Tab.3', r.tab3],
+    ['Fator Tab.5', r.fTab5 + ' Kcal/h'],
+    ['Iluminação', r.areaPiso.toFixed(2) + 'm² ×10W×' + r.hLuz + 'h×0,86'],
+    ['Fator segurança', r.fs + '%'],
+    ['Horas funcionamento', r.hFunc + 'h/dia'],
+  ];
+  var infoRowsHtml = '';
+  for (var ii = 0; ii < infoRows.length; ii++) {
+    var iRow = infoRows[ii];
+    var bgRow = ii % 2 ? '#f4f5f8' : '#fff';
+    infoRowsHtml += '<tr style="background:' + bgRow + '">';
+    infoRowsHtml += '<td style="padding:4px 8px;color:#64647a;font-size:8.5px;width:38%">' + iRow[0] + '<\/td>';
+    infoRowsHtml += '<td style="padding:4px 8px;font-weight:600;color:#1a1a2e;font-size:8.5px">' + iRow[1] + '<\/td><\/tr>';
+  }
+  var infoRowsFinal = infoRowsHtml;
+
+  var qRows = [
+    ['Q1', 'Transmissão', r.q1],
+    ['Q2', 'Infiltração', r.q2],
+    ['Q3', 'Produto', r.q3],
+    ['Q4', 'Ocupação', r.q4],
+    ['Q5', 'Iluminação', r.q5],
+    ['Q6', 'Motores', r.q6],
+    ['—', 'Subtotal', r.sub],
+    ['—', 'Segurança ' + r.fs + '%', r.sub * (r.fs / 100)],
+  ];
+  var qRowsHtml = '';
+  for (var qi = 0; qi < qRows.length; qi++) {
+    var qr = qRows[qi];
+    var qCod = qr[0], qDesc = qr[1], qVal = qr[2];
+    var isSub = qDesc === 'Subtotal';
+    var bgCor = isSub ? '#eef2ff' : (qi % 2 ? '#f4f5f8' : '#fff');
+    var pesoFonte = isSub ? 600 : 400;
+    var porcentagem = r.sub > 0 ? ((qVal / r.sub) * 100).toFixed(1) + '%' : '';
+    qRowsHtml += '<tr style="background:' + bgCor + '">';
+    qRowsHtml += '<td style="padding:4px 8px;font-weight:600;color:#2557d6;font-size:8px;width:8%">' + qCod + '<\/td>';
+    qRowsHtml += '<td style="padding:4px 8px;font-size:8.5px;color:#1a1a2e;font-weight:' + pesoFonte + '">' + qDesc + '<\/td>';
+    qRowsHtml += '<td style="padding:4px 8px;text-align:right;font-family:monospace;font-size:8.5px">' + fmt(qVal) + '<\/td>';
+    qRowsHtml += '<td style="padding:4px 8px;text-align:right;font-size:7.5px;color:#b0b0c0">' + porcentagem + '<\/td><\/tr>';
+  }
+  var qRowsFinal = qRowsHtml;
+
+  function sec(t) {
+    return '<div style="font-size:7px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#2557d6;margin:8px 0 4px;padding-bottom:2px;border-bottom:1px solid #e2e4ec">' + t + '</div>';
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">' +
+    '<title>Relatório Carga Térmica</title>' +
+    '<style>@page{size:A4;margin:0.5cm}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Outfit,sans-serif;font-size:9px;color:#1a1a2e;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.header{background:linear-gradient(135deg,#1e3a8a,#2557d6);padding:12px 16px;margin-bottom:10px}.eye{font-size:6px;color:rgba(255,255,255,.55);letter-spacing:.12em;margin-bottom:3px}h1{font-size:13px;color:#fff;margin-bottom:2px}.meta{font-size:7px;color:rgba(255,255,255,.55);display:flex;gap:6px}.body{padding:0 12px 10px}table{width:100%;border-collapse:collapse}.g3{display:flex;gap:8px;margin:4px 0}.rb{flex:1;border:1px solid #e2e4ec;border-radius:5px;padding:6px;text-align:center;background:#f4f5f8}.rb.hi{background:linear-gradient(135deg,#1e3a8a,#2557d6);border:none}.rb .lb{font-size:6px;text-transform:uppercase;color:#64647a;margin-bottom:2px}.rb.hi .lb{color:rgba(255,255,255,.5)}.rb .nm{font-size:11px;font-weight:700;color:#1a1a2e}.rb.hi .nm{color:#fff}.rb .un{font-size:5px;color:#b0b0c0}.pie{display:flex;gap:12px;align-items:center;margin:5px 0}.pie img{width:80px;height:80px}footer{font-size:6px;color:#b0b0c0;margin-top:8px;padding-top:4px;border-top:1px solid #e2e4ec;text-align:center}</style></head><body>' +
+    '<div class="header"><div class="eye">PROJETO DE FINAL DE CURSO</div><h1>Relatório de Carga Térmica</h1>' +
+    '<div class="meta"><b>Douglas Pires Oliveira</b><span>|</span>Câmaras Frigoríficas<span>|</span>' + now + '</div></div>' +
+    '<div class="body">' + sec('DADOS DA CÂMARA') + '<table>' + infoRowsFinal + '</table>' +
+    sec('COMPOSIÇÃO DA CARGA') + '<table><thead><tr style="background:#eef2ff"><th style="padding:4px 8px;text-align:left;font-size:7px;width:8%">Cód</th><th style="padding:4px 8px;text-align:left;font-size:7px">Descrição</th><th style="padding:4px 8px;text-align:right;font-size:7px">Kcal/24h</th><th style="padding:4px 8px;text-align:right;font-size:7px">%</th></tr></thead><tbody>' + qRowsFinal + '</tbody></table>' +
+    sec('DISTRIBUIÇÃO') + '<div class="pie"><img src="' + pie + '"><div style="flex:1">' + legend + '</div></div>' +
+    sec('RESULTADO FINAL') + '<div class="g3">' +
+    '<div class="rb hi"><div class="lb">Carga Total</div><div class="nm">' + fmt(r.qtTotal) + '</div><div class="un">Kcal/24h</div></div>' +
+    '<div class="rb hi"><div class="lb">Capacidade</div><div class="nm">' + fmt(r.qtH) + '</div><div class="un">Kcal/h</div></div>' +
+    '<div class="rb"><div class="lb">Equivalente</div><div class="nm">' + fmt2(r.qtKW) + '</div><div class="un">kW</div></div></div>' +
+    '<footer>.</footer></div>' +
+    '<script>window.onload=function(){window.print()}<\/script></body></html>';
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+</script>
+</body>
+</html>

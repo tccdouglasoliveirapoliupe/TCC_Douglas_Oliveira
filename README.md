@@ -130,4 +130,4 @@ Escola Politécnica de Pernambuco (POLI/UPE)
 
 Este projeto foi desenvolvido para fins acadêmicos e educacionais.
 
-O uso, modificação e distribuição devem respeitar os créditos ao autor original.
+O uso, modificação e distribuição deste software são inventivados.
